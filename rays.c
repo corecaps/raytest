@@ -122,15 +122,20 @@ void draw_rays(t_data *data)
 //            printf("dist_v: %f\n", dist_v);
         }
         if (dist_h < 1000) {
-            double dist_plane = (WIDTH / 2) / tan(60.0 / 2);
+//            printf("dist_h: %f\n", dist_h);
+            double dist_plane = (WIDTH / 2) / - tan(60.0 / 2);
 //        double dist_wall = dist_h * cos(ray_angle - data->player->angle);
-            double wall_height = (grid_size / dist_h) * dist_plane;
-            double wall_start = (HEIGHT / 2) - (wall_height / 2);
-            double wall_end = (HEIGHT / 2) + (wall_height / 2);
-            int slice_width = (int) (WIDTH / 15);
-            t_point top_left_wall = {ray_pos.x + OFFSET_3D, wall_start};
-            t_point bottom_right_wall = {ray_pos.x + OFFSET_3D + slice_width, wall_end};
-            fill_rectangle(data, (t_color) {0x00FFFF}, top_left_wall, bottom_right_wall);
+            double wall_height = (grid_size * 3 / dist_h) * dist_plane;
+            double wall_start = (HEIGHT /2 ) - (wall_height *2 );
+            double wall_end = (HEIGHT /2 ) + (wall_height * 2);
+            int slice_width = (int) (WIDTH / 60);
+            t_point top_left_wall = {(offset + 30) * 12 + OFFSET_3D, wall_start};
+            t_point bottom_right_wall = {(offset + 30) * 12 + OFFSET_3D + slice_width, wall_end};
+            t_color wall_color;
+            wall_color.s_rgb.r = (int)(500 - dist_h) % 500 * 255;
+            wall_color.s_rgb.g = (int)(500 - dist_h) % 500 * 255;
+            wall_color.s_rgb.b = (int)(500 - dist_h) % 500 * 255;
+            fill_rectangle(data, wall_color, top_left_wall, bottom_right_wall);
 //            printf("Slice from [%d, %d] to [%d, %d]\n", (int) top_left_wall.x, (int) top_left_wall.y,
 //                   (int) bottom_right_wall.x, (int) bottom_right_wall.y);
 //        draw_line(data, (t_color){0x00FF00}, start, wall);}

@@ -80,6 +80,7 @@ int main(void)
 	data->player->pos.y = (double) WIDTH /2;
     data->player->angle = 0;
     data->player->size = 10;
+    data->player->fov = 60;
 //	printf("brick hitbox start x: %f end x: %f start y: %f end y: %f",data->brick_hitbox.start_x,data->brick_hitbox.end_x,data->brick_hitbox.start_y,data->brick_hitbox.end_y);
 	mlx_hook(data->mlx_win, 2, 1L << 0, key_pressed, data);
 	mlx_loop_hook(data->mlx,render,data);
