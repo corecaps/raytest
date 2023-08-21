@@ -3,142 +3,84 @@
 //
 
 #include "raycast.h"
-
-void draw_rays(t_data *data)
-{
+void draw_rays(t_data *data){
     t_color ray_color = {0x00FF00};
-    for (int offset=-30;offset < 31;offset ++)
-    {
-        t_point ray_pos = {data->player->pos.x, data->player->pos.y};
-        double ray_angle = (data->player->angle + offset) * RADIAN;
-        int dof = 0;
-        double dist_v = 1000000;
-        double dist_h = 1000000;
-        int grid_size = WIDTH / GRID_WIDTH;
-        t_int_point A; // first
-        t_int_point inc; // increment
-        t_point dest_v;
-        t_point dest_h;
-        // horizontal
-        ray_color = (t_color){0x00FF00};
-
-        if (sin(ray_angle) == 0)
-            (void) 0;
-        else if (sin(ray_angle) < 0) {
-            inc.x = grid_size / tan(ray_angle);
-            inc.y = grid_size;
-            A.y = (int) (ray_pos.y / grid_size) * grid_size;
-            A.x = (int) (data->player->pos.x + (A.y - data->player->pos.y) / tan(ray_angle));
-            t_point ray = {A.x, A.y};
-            draw_line(data, ray_color, ray_pos, (t_point) {(double) A.x, (double) A.y});
-            for (int i = 0; i < 15; i++) {
-                t_point tmp = {ray.x, ray.y};
-                ray.x -= inc.x;
-                ray.y -= inc.y;
-                if (ray.x < 0 || ray.y < 0 || ray.x > WIDTH || ray.y > HEIGHT)
-                    break;
-
-                if (data->map[(int) (ray.y / grid_size)][(int) (ray.x / grid_size)] == 1) {
-                    dist_h = sqrt(pow(ray_pos.x - ray.x, 2) + pow(ray_pos.y - ray.y, 2));
-                    dest_h = ray;
-                    break;
-                }
-                draw_line(data, ray_color, tmp, ray);
+    t_color ceil_color = {0xb000b0};
+    t_color floor_color = {0x300030};
+    int grid_size = WIDTH / GRID_WIDTH;
+    t_point pos = {data->player->pos.x / grid_size, data->player->pos.y/grid_size};
+    for (int x = 0; x< WIDTH;x++) {
+        double cameraX = 2 * x / (double)WIDTH - 1;
+        t_point ray_dir = {data->player->dir_vector.x + data->player->plane_vector.x * cameraX, data->player->dir_vector.y + data->player->plane_vector.y * cameraX};
+        int MapX = (int)pos.x;
+        int MapY = (int)pos.y;
+        t_point sideDist;
+        t_point deltaDist = {fabs(1 / ray_dir.x), fabs(1 / ray_dir.y)};
+        double perpWallDist;
+        int stepX;
+        int stepY;
+        int hit = 0;
+        int side;
+        if (ray_dir.x < 0)
+        {
+            stepX = -1;
+            sideDist.x = (pos.x - MapX) * deltaDist.x;
+        }
+        else
+        {
+            stepX = 1;
+            sideDist.x = (MapX + 1.0 - pos.x) * deltaDist.x;
+        }
+        if (ray_dir.y < 0)
+        {
+            stepY = -1;
+            sideDist.y = (pos.y - MapY) * deltaDist.y;
+        }
+        else
+        {
+            stepY = 1;
+            sideDist.y = (MapY + 1.0 - pos.y) * deltaDist.y;
+        }
+        while (hit == 0)
+        {
+            if (sideDist.x < sideDist.y)
+            {
+                sideDist.x += deltaDist.x;
+                MapX += stepX;
+                side = 0;
             }
+            else
+            {
+                sideDist.y += deltaDist.y;
+                MapY += stepY;
+                side = 1;
+            }
+            if (data->map[MapY][MapX] > 0)
+                hit = 1;
+        }
+        draw_line(data, ray_color, (t_point){pos.x * grid_size, pos.y * grid_size}, (t_point){MapX * grid_size, MapY * grid_size});
+        if (side == 0)
+            perpWallDist = sideDist.x - deltaDist.x;
+        else
+            perpWallDist = sideDist.y - deltaDist.y;
+        int lineHeight = (int)(HEIGHT / perpWallDist);
+        int drawStart = -lineHeight / 2 + HEIGHT / 2;
+        if (drawStart < 0)
+            drawStart = 0;
+        int drawEnd = lineHeight / 2 + HEIGHT / 2;
+        if (drawEnd >= HEIGHT)
+            drawEnd = HEIGHT - 1;
+        if (side == 1) {
+            ray_color.s_rgb.b = 0xF0 - perpWallDist * 10;
+            ray_color.s_rgb.g = 0xF0 - perpWallDist * 10;
+            ray_color.s_rgb.r = 0xF0 - perpWallDist * 10;
         } else {
-            inc.x = grid_size / tan(ray_angle);
-            inc.y = grid_size;
-            A.y = (int) ((ray_pos.y / grid_size) + 1) * grid_size;
-            A.x = (int) (data->player->pos.x + (A.y - data->player->pos.y) / tan(ray_angle));
-            t_point ray = {A.x, A.y};
-            draw_line(data, ray_color, ray_pos, (t_point) {(double) A.x, (double) A.y});
-            for (int i = 0; i < 8; i++) {
-                t_point tmp = {ray.x, ray.y};
-                ray.x += inc.x;
-                ray.y += inc.y;
-                if (ray.x < 0 || ray.y < 0 || ray.x > WIDTH || ray.y > HEIGHT)
-                    break;
-
-                if (data->map[(int) (ray.y / grid_size)][(int) (ray.x / grid_size)] == 1) {
-                    dist_h = sqrt(pow(ray_pos.x - ray.x, 2) + pow(ray_pos.y - ray.y, 2));
-                    dest_h = ray;
-                    break;
-                }
-                draw_line(data, ray_color, tmp, ray);
-            }
+            ray_color.s_rgb.b = 0xFF - perpWallDist * 10;
+            ray_color.s_rgb.g = 0xFF - perpWallDist * 10;
+            ray_color.s_rgb.r = 0xFF - perpWallDist * 10;
         }
-        // vertical
-        ray_color = (t_color){0x0000FF};
-        if (cos(ray_angle) == 0)
-            (void) 0;
-        else if (cos(ray_angle) < 0) {
-            inc.y = grid_size * tan(ray_angle);
-            inc.x = grid_size;
-            A.x = (int) (ray_pos.x / grid_size) * grid_size;
-            A.y = (int) (data->player->pos.y + (A.x - data->player->pos.x) * tan(ray_angle));
-            t_point ray = {A.x, A.y};
-            draw_line(data, ray_color, ray_pos, (t_point) {(double) A.x, (double) A.y});
-            for (int i = 0; i < 15; i++) {
-                t_point tmp = {ray.x, ray.y};
-                ray.x -= inc.x;
-                ray.y -= inc.y;
-                if (ray.x < 0 || ray.y < 0 || ray.x > WIDTH || ray.y > HEIGHT)
-                    break;
-
-                if (data->map[(int) (ray.y / grid_size)][(int) (ray.x / grid_size)] == 1) {
-                    dist_v = sqrt(pow(ray_pos.x - ray.x, 2) + pow(ray_pos.y - ray.y, 2));
-                    dest_v = ray;
-                    break;
-                }
-                draw_line(data, ray_color, tmp, ray);
-            }
-        } else {
-            inc.y = grid_size * tan(ray_angle);
-            inc.x = grid_size;
-            A.x = (int) (ray_pos.x / grid_size) * grid_size;
-            A.y = (int) (data->player->pos.y + (A.x - data->player->pos.x) * tan(ray_angle));
-            t_point ray = {A.x, A.y};
-            draw_line(data, ray_color, ray_pos, (t_point) {(double) A.x, (double) A.y});
-            for (int i = 0; i < 15; i++) {
-                t_point tmp = {ray.x, ray.y};
-                ray.x += inc.x;
-                ray.y += inc.y;
-                if (ray.x < 0 || ray.y < 0 || ray.x > WIDTH || ray.y > HEIGHT)
-                    break;
-
-                if (data->map[(int) (ray.y / grid_size)][(int) (ray.x / grid_size)] == 1) {
-                    dist_v = sqrt(pow(ray_pos.x - ray.x, 2) + pow(ray_pos.y - ray.y, 2));
-                    dest_v = ray;
-                    break;
-                }
-                draw_line(data, ray_color, tmp, ray);
-            }
-        }
-        if (dist_h < dist_v) {
-
-//            printf("dist_h: %f\n", dist_h);
-        }else {
-            dist_h = dist_v;
-//            printf("dist_v: %f\n", dist_v);
-        }
-        if (dist_h < 1000) {
-//            printf("dist_h: %f\n", dist_h);
-            double dist_plane = (WIDTH / 2) / - tan(60.0 / 2);
-//        double dist_wall = dist_h * cos(ray_angle - data->player->angle);
-            double wall_height = (grid_size * 3 / dist_h) * dist_plane;
-            double wall_start = (HEIGHT /2 ) - (wall_height *2 );
-            double wall_end = (HEIGHT /2 ) + (wall_height * 2);
-            int slice_width = (int) (WIDTH / 60);
-            t_point top_left_wall = {(offset + 30) * 12 + OFFSET_3D, wall_start};
-            t_point bottom_right_wall = {(offset + 30) * 12 + OFFSET_3D + slice_width, wall_end};
-            t_color wall_color;
-            wall_color.s_rgb.r = (int)(500 - dist_h) % 500 * 255;
-            wall_color.s_rgb.g = (int)(500 - dist_h) % 500 * 255;
-            wall_color.s_rgb.b = (int)(500 - dist_h) % 500 * 255;
-            fill_rectangle(data, wall_color, top_left_wall, bottom_right_wall);
-//            printf("Slice from [%d, %d] to [%d, %d]\n", (int) top_left_wall.x, (int) top_left_wall.y,
-//                   (int) bottom_right_wall.x, (int) bottom_right_wall.y);
-//        draw_line(data, (t_color){0x00FF00}, start, wall);}
-        }
+        draw_line(data,ceil_color, (t_point){x + OFFSET_3D, 0}, (t_point){x + OFFSET_3D, drawStart});
+        draw_line(data, ray_color, (t_point){x + OFFSET_3D, drawStart}, (t_point){x+OFFSET_3D, drawEnd});
+        draw_line(data, floor_color, (t_point){x + OFFSET_3D, drawEnd}, (t_point){x + OFFSET_3D, HEIGHT});
     }
 }

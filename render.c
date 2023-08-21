@@ -32,10 +32,6 @@ int render(t_data *data)
             }
         }
     }
-    t_int_point player_in_grid;
-    player_in_grid.x = (int)(data->player->pos.x / grid_size_x);
-    player_in_grid.y = (int)(data->player->pos.y / grid_size_y);
-//    printf("player in grid: %d, %d\n", player_in_grid.x, player_in_grid.y);
     draw_line(data, white,(t_point) {(double)WIDTH, (double)0},(t_point) {(double)WIDTH, (double)HEIGHT});
     draw_player(data);
     draw_rays(data);

@@ -7,7 +7,9 @@ int my_mlx_pixel_put(t_buffer *data, t_color color, t_int_point coord)
 {
 	char	*dst;
     if (coord.x < 0 || coord.x >= TWIDTH || coord.y < 0 || coord.y >= HEIGHT)
+    {
         return (-1);
+    }
 	dst = data->address + (coord.y * data->line_length + coord.x * (data->bit_per_pixel / 8));
 	*(unsigned int*)dst = color.color;
 	return (0);

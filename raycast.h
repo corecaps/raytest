@@ -61,6 +61,8 @@ typedef union u_color
 typedef struct player {
     t_point pos;
     double angle;
+    t_point dir_vector;
+    t_point plane_vector;
     double fov;
     double size;
 }t_player;
@@ -93,5 +95,6 @@ void	clear_buffer(t_data *data);
 void draw_player(t_data *data);
 void fill_rectangle(t_data *data, t_color color, t_point top_left, t_point bottom_right);
 void draw_rays(t_data *data);
+void draw_rays2(t_data *data);
 t_point calc_point(t_point from, double angle, double distance);
 #endif

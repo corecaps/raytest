@@ -57,6 +57,7 @@ void fill_array_from_file(t_data *data, const char *filename) {
 
 int main(void)
 {
+
 	t_data	*data;
 
 	data = malloc(sizeof (t_data));
@@ -81,6 +82,10 @@ int main(void)
     data->player->angle = 0;
     data->player->size = 10;
     data->player->fov = 60;
+    data->player->dir_vector.x = 1;
+    data->player->dir_vector.y = 0;
+    data->player->plane_vector.x = 0;
+    data->player->plane_vector.y = 0.66;
 //	printf("brick hitbox start x: %f end x: %f start y: %f end y: %f",data->brick_hitbox.start_x,data->brick_hitbox.end_x,data->brick_hitbox.start_y,data->brick_hitbox.end_y);
 	mlx_hook(data->mlx_win, 2, 1L << 0, key_pressed, data);
 	mlx_loop_hook(data->mlx,render,data);
